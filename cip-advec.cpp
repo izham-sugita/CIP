@@ -76,26 +76,31 @@ int main()
     if(i*dx>=1.0f && i*dx<=2.0f){
       fx[i] = 1.0;
     }
-    fxn[i] = 0.0; //fx[i];
-    gx[i]  = 0.0;
+    fxn[i] = fx[i]; //fx[i];
     gxn[i] = 0.0;
+    gx[i] = 0.0;
   }  
 
+  for(i=1; i<imax-1; ++i){
+    gx[i] = (fx[i]-fx[i-1])/dx;
+  }
+  
   iter = 0;
   int iup;
   float fdif,xam1,xbm1,xx;
-  int up;
-  float alpha =0;
+  float up;
+  float alpha =1.0;
+  cout<<"Enter alpha(0< , <=1.0), control parameter:"<<endl;
+  cin>>alpha;
   float B;
   float a,b,c,d;
   do{
 
     for(i=1; i<imax-1; ++i){
       up = -sgn(cx);
-      iup = i+up;
+      iup = i + (int)up;
       xx = -cx*dt;
-      //fdif = (fx[iup]-fx[i])/dx *up;
-      fdif = (fx[iup]-fx[i])/dx;
+      fdif = (fx[iup]-fx[i])/dx*up;
 
       /*
       xam1 = ( gx[i] + gx[iup]- 2.0*fdif )/(dx*dx);
@@ -104,14 +109,22 @@ int main()
       gxn[i] =( 3.0*xam1*xx + 2.0*xbm1 )*xx + gx[i];
       */
 
-      B = ((fdif-gx[i])/(gx[iup]-fdif + 1.0e-6) - 1.0 )/dx;
-      a = (gx[i]-fdif + (gx[iup]-fdif)*(1.0+alpha*B*dx) )/(dx*dx);
-      b = alpha*B*fdif + (fdif-gx[i])/dx*up -a*dx;
-      c = gx[i] + alpha*B*fx[i];
-      d = fx[i];
+      
+      B = ( abs( (fdif-gx[i])/(gx[iup]-fdif +1.0e-6) ) - 1.0 )/(dx*up);
 
-      fxn[i] = ( (a*xx + b)*xx + c )*xx + fx[i];
-      gxn[i] = (3.0*a*xx + 2.0*b)*xx + gx[i];
+      a = ( gx[i]-fdif + (gx[iup]-fdif)*(1.0 + alpha*B*(dx*up) ) )/(dx*dx);
+
+      b = alpha*B*fdif + (fdif-gx[i])/(dx*up) -a*(dx*up);
+
+      c = gx[i] + alpha*B*fx[i];
+      
+
+      fxn[i] = ( ( (a*xx + b)*xx + c )*xx + fx[i] )/(1.0 + alpha*B*xx);
+
+      gxn[i] =( (1.0 + alpha*B*xx)*((3.0*a*xx + 2.0*b)*xx + c)
+		- ( ((a*xx + b)*xx + c )*xx + fx[i] )*(alpha*B) )
+	/( (1.0 + alpha*B*xx)*(1.0 + alpha*B*xx) );
+      
     }
 
     if(iter%steps == 0) output(iter,x,fxn);
