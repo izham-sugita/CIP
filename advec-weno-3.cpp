@@ -4,6 +4,10 @@
 #include<cmath> // math function
 #include<vector>
 
+#include<iomanip> //setw()
+#include<string> 
+#include<sstream> //stringstream
+
 using namespace std;
 
 float rkstep(float u, float dt,
@@ -74,6 +78,27 @@ float flux(float stn[5]) //calculate the right-hand side
 
 //------------------
 
+void output(int steps, vector<float> x, vector<float> fx)
+{
+  ofstream fp;
+  stringstream buf;
+  string filenumber;
+
+  buf<<setfill('0');
+  filenumber = to_string(steps);
+  buf<<setw(5)<<filenumber;
+
+  string filename="wf"+buf.str()+".csv";
+  fp.open(filename, ios::out);
+  fp<<"x, fx\n";
+  for(int i=0; i<x.size(); ++i){
+    fp<<x[i]<<", "
+      <<fx[i]<<"\n";
+  }
+  fp.close();
+  buf.str(string()); //clear buffer
+}
+
 
 int main()
 {
@@ -93,22 +118,30 @@ int main()
   int itermax;
   cout<<"Enter itermax "<<endl;
   cin>>itermax;
+
+  int steps;
+  cout<<"Enter steps for capture: "<<endl;
+  cin>>steps;
   
   /*Initial condition*/
   uex.resize(imax);
   u.resize(imax);
   uinit.resize(imax);
 
-  /*
+  vector<float> x;
+  x.resize(imax);
+  
   for(int i=0; i<imax; ++i){
+    x[i] = i*dx;
     u[i] = 0.0;
     uex[i] = 0.0;
     if(i*dx>=1.0f && i*dx<=2.0f){
       u[i] = 1.0;
     }
   }  
-  */
+  
 
+  /*
   for(int i=0; i<imax; ++i){
     u[i] = 1.0;
     if(i*dx>1.0f){
@@ -117,6 +150,8 @@ int main()
 
     uex[i] = u[i];
   }
+  */
+
   
   for(int i=0; i<imax; ++i) uinit[i] = u[i];
   
@@ -396,7 +431,8 @@ int main()
    } //third step
    
    swap(u,u1);
-   
+
+   if(iter%steps ==0) output(iter,x,u);
    
      iter +=1;
      
