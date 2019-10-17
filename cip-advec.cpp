@@ -60,6 +60,10 @@ int main()
   cin>>steps;
 
   //  cout<<sgn(steps)<<endl;
+
+  cout<<"Analytical solution time "<<itermax*dx<<endl;
+  cout<<"Adjust itermax"<<endl;
+  cin>>itermax;
   
   x.resize(imax);
   fx.resize(imax);
