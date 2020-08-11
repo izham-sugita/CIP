@@ -61,7 +61,8 @@ for i in range( 1, imax-1 ):
     
     
 dt = np.float64(input("Enter dt, dx=%s\n  "%dx ))
-itermax = int( 10.0/dt )
+elapsed = 10.0
+itermax = int( elapsed/dt )-int(elapsed/2.0) #adjusted timestep; don't know why
 print("Maximum iteration: ", itermax)
 c = 1.0
 c = float(input("Enter c, +1.0 or -1.0 "))
@@ -149,19 +150,29 @@ for iter in range(itermax):
         
 
     #update periodic BC
+    u[0] = un[imax-2]
+    ud1[0] = ud1n[imax-2]
+    ud2[0] = ud2n[imax-2]
+    
     u[imax-1] = un[imax-2]
     ud1[imax-1] = ud1n[imax-2]
     ud2[imax-1] = ud2n[imax-2]
 
-    u[0] = un[imax-2]
-    ud1[0] = ud1n[imax-2]
-    ud2[0] = ud2n[imax-2]
 
     for i in range(1, imax-1):
         u[i] = un[i]
         ud1[i] = ud1n[i]
         ud2[i] = ud2n[i]
 
+    #update periodic BC
+    #u[imax-1] = un[imax-2]
+    #ud1[imax-1] = ud1n[imax-2]
+    #ud2[imax-1] = ud2n[imax-2]
+
+    #u[0] = un[imax-2]
+    #ud1[0] = ud1n[imax-2]
+    #ud2[0] = ud2n[imax-2]
+        
     '''    
     #update
     u[:] = un[:]
@@ -187,17 +198,17 @@ for iter in range(itermax):
     display = "t = %.4f"%(current)
     phi[:] = 0.0
     
-    #current = iter*dt + dt
-    #display = "t = %.4f"%(current)
+    current = iter*dt + dt
+    display = "t = %.4f"%(current)
     #plt.axis([0.0, 10.0, -0.5, 1.5 ] )
     
-    #plt.axis([-2.0, 2.0, -0.5, 1.5 ] )
-    #plt.title(display)
-    #plt.ylabel("U")
-    #plt.xlabel("x")
-    #plt.plot(x,u,'bo-')
-    #plt.pause(0.001)
-    #plt.clf() #clear drawing
+    plt.axis([-2.0, 2.0, -0.5, 1.5 ] )
+    plt.title(display)
+    plt.ylabel("U")
+    plt.xlabel("x")
+    plt.plot(x,u,'bo-')
+    plt.pause(0.001)
+    plt.clf() #clear drawing
     
 
 filename = "final.png"
