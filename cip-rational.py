@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import sys
 
 #Changing the default size
 #fig_size = plt.rcParams["figure.figsize"]
@@ -7,8 +8,9 @@ import matplotlib.pyplot as plt
 #fig_size[1] = 16
 #plt.rcParams["figure.figsize"] = fig_size
 
-imax = 1001
-dx = 10.0/(imax-1)
+imax = 201
+length = 2.0 # -1<=x<=1
+dx = length/(imax-1)
 u = np.ndarray((imax),dtype=np.float64)
 un = np.ndarray((imax),dtype=np.float64)
 
@@ -21,14 +23,49 @@ ud2n = np.zeros_like(u)
 
 x = np.ndarray((imax),dtype=np.float64)
 
-for i in range(imax):
-    x[i] = i*dx
-    u[i] = 0.0
-    un[i] =0.0
-    if x[i] > 4.0 and x[i] < 6.0:
-        u[i] = 1.0
-        un[i]=1.0
+#square wave initial condition
+#for i in range(imax):
+#    x[i] = i*dx
+#    u[i] = 0.0
+#    un[i] =0.0
+#    if x[i] > 4.0 and x[i] < 6.0:
+#        u[i] = 1.0
+#        un[i]=1.0
 
+u[:] = 0.0
+un[:] = 0.0
+
+#multiple wave profile
+for i in range(imax):
+    x[i] = -1.0 + i*dx
+
+    if x[i] >=-0.8 and x[i] <=-0.6:
+        u[i] = np.exp( -np.log(2.0)*(x[i]+0.7)**2 / 0.0009  )
+        un[i] = u[i]
+    elif x[i] >=-0.5 and x[i] <=-0.2:
+        u[i] = 1.0
+        un[i] = u[i]
+    elif x[i] >=0.0 and x[i] <=0.2:
+        u[i] = 1.0 - abs(10.0*x[i] - 1.0)
+        un[i] = u[i]
+    elif x[i] >=0.4 and x[i] <=0.6:
+        u[i] = np.sqrt( 1.0 - 100.0*(x[i] - 0.5)**2  )
+        un[i] = u[i]
+        
+
+#plot check
+#plt.axis([-2.0, 2.0, -0.5, 1.5 ] )
+#plt.plot(x,u, 'b-')
+#plt.ylabel("U")
+#plt.xlabel("x")
+#plt.show()
+
+#ans = input("Continue? y/n ")
+#if ans == 'n':
+#    sys.exit("Program terminated")
+#else:
+#    print("Continue....")
+    
 #Initiate derivatives value
 for i in range( 1, imax-1 ):
     ud1[i] = 0.5*(u[i+1] - u[i-1])/dx
@@ -39,11 +76,13 @@ for i in range( 1, imax-1 ):
     
     
 dt = np.float64(input("Enter dt, dx=%s\n  "%dx ))
-itermax = int( 2.0/dt ) 
+itermax = int( 2.0/dt )
+print("Maximum iteration: ", itermax)
 c = 1.0
 c = float(input("Enter c, +1.0 or -1.0 "))
 
 alpha = c*dt/dx
+print("CFL = ", alpha)
 eps = 1.0e-6
 xx = -c*dt
 steps = 10
@@ -52,11 +91,14 @@ alpha = 1.0
 #calculating exact solution
 uexact = np.zeros_like(u)
 #calculating exact solution
-for i in range(imax):
-    r1 = itermax*dt + 4.0
-    r2 = r1 + (6.0 - 4.0) #did this on purpose, a reminder
-    if x[i] >=r1 and x[i] <= r2:
-        uexact[i] = 1.0
+#for i in range(imax):
+#    r1 = itermax*dt + 4.0
+#    r2 = r1 + (6.0 - 4.0) #did this on purpose, a reminder
+#    if x[i] >=r1 and x[i] <= r2:
+#        uexact[i] = 1.0
+
+#per-cycle, should return to original value
+uexact[:] = u[:]
 
 for iter in range(itermax):
 
@@ -81,9 +123,21 @@ for iter in range(itermax):
                     - ( u[i] + a4*xx + a3*xx**2 + a2*xx**3 ) *(alpha*Beta) ) \
                     / ( (1.0 + alpha*Beta*xx)*(1.0 + alpha*Beta*xx))             
         
+
+    #update periodic BC
+    u[imax-1] = un[imax-2]
+    ud1[imax-1] = ud1n[imax-2]
+
+    u[0] = un[imax-2]
+    ud1[0] = ud1n[imax-2]
+
+    for i in range(1, imax-1):
+        u[i] = un[i]
+        ud1[i] = ud1n[i]
+    
     #update
-    u[:] = un[:]
-    ud1[:] = ud1n[:]
+    #u[:] = un[:]
+    #ud1[:] = ud1n[:]
 
 
     #if iter%steps == 0:
@@ -111,7 +165,8 @@ for iter in range(itermax):
     
     #current = iter*dt + dt
     #display = "t = %.4f"%(current)
-    plt.axis([0.0, 10.0, -0.5, 1.5 ] )
+    #plt.axis([0.0, 10.0, -0.5, 1.5 ] )
+    plt.axis([-2.0, 2.0, -0.5, 1.5 ] )
     plt.title(display)
     plt.ylabel("U")
     plt.xlabel("x")
@@ -121,7 +176,8 @@ for iter in range(itermax):
     
 
 filename = "final.png"
-plt.axis([0.0, 10.0, -0.5, 1.5 ] )
+#plt.axis([0.0, 10.0, -0.5, 1.5 ] )
+plt.axis([-2.0, 2.0, -0.5, 1.5 ] )
 plt.plot(x,u, 'bo-')
 plt.plot(x,uexact, 'kv-')
 plt.title(display)
